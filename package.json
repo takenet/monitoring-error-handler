@@ -27,7 +27,8 @@
     "test": "jest",
     "coverage": "jest --coverage",
     "watch": "npm run build -- --watch",
-    "watch:test": "jest --watch"
+    "watch:test": "jest --watch",
+    "semantic-release": "semantic-release --prepare && npm publish && semantic-release post"
   },
   "dependencies": {
     "applicationinsights-js": "^1.0.20"
