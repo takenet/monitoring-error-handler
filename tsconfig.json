@@ -4,10 +4,10 @@
     "module": "commonjs",
     "moduleResolution": "node",
     "lib": [
-      "esnext"
+      "esnext",
+      "dom"
     ],
     "target": "es2015",
-    "strict": true,
     "outDir": "./dist",
     "preserveConstEnums": true,
     "removeComments": true,
