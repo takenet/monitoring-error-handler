@@ -17,7 +17,7 @@ Initialize client with Application Insights `instrumentation key`
 ```typescript
 import { MonitoringErrorHandler } from 'monitoring-error-handler';
 
-MonitoringErrorHandler.instance.initialize('YOUR-INSTRUMENTATION-KEY');
+MonitoringErrorHandler.instance.initialize('YOUR-INSTRUMENTATION-KEY', 'applicationName');
 ```
 
 Start tracking your exceptions
