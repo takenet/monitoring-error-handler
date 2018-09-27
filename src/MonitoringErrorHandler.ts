@@ -18,11 +18,20 @@ export class MonitoringErrorHandler {
     return MonitoringErrorHandler.Instance;
   }
 
-  public initialize(appInsightsInstrumentationKey: string) {
+  public initialize(appInsightsInstrumentationKey: string, applicationName?: string) {
     if (!this.hasInitialized && AppInsights.downloadAndSetup) {
       AppInsights.downloadAndSetup({
-        instrumentationKey: appInsightsInstrumentationKey
+        instrumentationKey: appInsightsInstrumentationKey,
       });
+
+      if (applicationName) {
+        AppInsights.queue.push(() => {
+          AppInsights.context.addTelemetryInitializer((evelope) => {
+            evelope.tags['ai.cloud.role'] = applicationName;
+          });
+        });
+      }
+
       this.hasInitialized = true;
     }
   }
