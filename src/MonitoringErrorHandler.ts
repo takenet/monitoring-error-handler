@@ -1,8 +1,21 @@
 import { AppInsights } from 'applicationinsights-js';
+import * as Sentry from '@sentry/browser';
+
+interface InitializeConfigurations {
+  applicationInsights?: {
+    instrumentationKey: string,
+    applicationName?:string,
+  };
+  sentry?: {
+    dsn: string;
+    environment: string;
+  };
+}
 
 export class MonitoringErrorHandler {
   private static Instance: MonitoringErrorHandler;
   public hasInitialized: any;
+  private configurations: InitializeConfigurations;
 
   private constructor() {
     if (MonitoringErrorHandler.Instance) {
@@ -18,22 +31,35 @@ export class MonitoringErrorHandler {
     return MonitoringErrorHandler.Instance;
   }
 
-  public initialize(appInsightsInstrumentationKey: string, applicationName?: string) {
-    if (!this.hasInitialized && AppInsights.downloadAndSetup) {
-      AppInsights.downloadAndSetup({
-        instrumentationKey: appInsightsInstrumentationKey,
-      });
+  public initialize(configurations: InitializeConfigurations) {
+    this.configurations = configurations;
 
-      if (applicationName) {
-        AppInsights.queue.push(() => {
-          AppInsights.context.addTelemetryInitializer((evelope) => {
-            evelope.tags['ai.cloud.role'] = applicationName;
-          });
+    if (!this.hasInitialized) {
+      // Application Insights
+      if (AppInsights.downloadAndSetup && configurations.applicationInsights) {
+        AppInsights.downloadAndSetup({
+          instrumentationKey: configurations.applicationInsights.instrumentationKey,
         });
+
+        if (configurations.applicationInsights.applicationName) {
+          AppInsights.queue.push(() => {
+            AppInsights.context.addTelemetryInitializer((evelope) => {
+              evelope.tags['ai.cloud.role'] = configurations.applicationInsights.applicationName;
+            });
+          });
+        }
       }
 
-      this.hasInitialized = true;
+      // Sentry
+      if (configurations.sentry) {
+        Sentry.init({
+          dsn: configurations.sentry.dsn,
+          environment: configurations.sentry.environment,
+        });
+      }
     }
+
+    this.hasInitialized = true;
   }
 
   public trackException(
@@ -43,12 +69,27 @@ export class MonitoringErrorHandler {
     measurements?: { [x: string]: number },
     severityLevel?: AI.SeverityLevel
   ) {
-    AppInsights.trackException(
-      exception,
-      handledAt,
-      properties,
-      measurements,
-      severityLevel
-    );
+    // Application Insights
+    if (this.configurations.applicationInsights) {
+      AppInsights.trackException(
+        exception,
+        handledAt,
+        properties,
+        measurements,
+        severityLevel
+      );
+    }
+
+    // Sentry
+    if (this.configurations.sentry) {
+      if (properties) {
+        Sentry.withScope((scope) => {
+          Object.keys(properties).forEach(k => scope.setTag(k, properties[k]));
+          Sentry.captureException(exception);
+        });
+      } else {
+        Sentry.captureException(exception);
+      }
+    }
   }
 }

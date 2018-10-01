@@ -31,6 +31,7 @@
     "semantic-release": "semantic-release --prepare && npm publish && semantic-release post"
   },
   "dependencies": {
+    "@sentry/browser": "^4.0.6",
     "applicationinsights-js": "^1.0.20"
   },
   "devDependencies": {
