@@ -1,7 +1,7 @@
-import { AppInsights } from 'applicationinsights-js';
-import * as Sentry from '@sentry/browser';
+import { SentryClient } from './clients/SentryClient';
+import { ApplicationInsightsClient } from './clients/ApplicationInsightsClient';
 
-interface InitializeConfigurations {
+export interface InitializeConfigurations {
   applicationInsights?: {
     instrumentationKey: string,
     applicationName?:string,
@@ -25,43 +25,43 @@ export class MonitoringErrorHandler {
     }
   }
 
+  /**
+   * Get class singleton instance
+   */
   public static get instance(): MonitoringErrorHandler {
     MonitoringErrorHandler.Instance =
       MonitoringErrorHandler.Instance || new MonitoringErrorHandler();
     return MonitoringErrorHandler.Instance;
   }
 
+  /**
+   * Initialize clients integrated
+   * @param configurations - initialize params
+   */
   public initialize(configurations: InitializeConfigurations) {
     this.configurations = configurations;
 
     if (!this.hasInitialized) {
       // Application Insights
-      if (AppInsights.downloadAndSetup && configurations.applicationInsights) {
-        AppInsights.downloadAndSetup({
-          instrumentationKey: configurations.applicationInsights.instrumentationKey,
-        });
-
-        if (configurations.applicationInsights.applicationName) {
-          AppInsights.queue.push(() => {
-            AppInsights.context.addTelemetryInitializer((evelope) => {
-              evelope.tags['ai.cloud.role'] = configurations.applicationInsights.applicationName;
-            });
-          });
-        }
-      }
+      ApplicationInsightsClient.initialize(configurations);
 
       // Sentry
       if (configurations.sentry) {
-        Sentry.init({
-          dsn: configurations.sentry.dsn,
-          environment: configurations.sentry.environment,
-        });
+        SentryClient.initialize(configurations);
       }
     }
 
     this.hasInitialized = true;
   }
 
+  /**
+   * Track generic exception and send arguments to specifc clients
+   * @param exception
+   * @param handledAt
+   * @param properties
+   * @param measurements
+   * @param severityLevel
+   */
   public trackException(
     exception: Error,
     handledAt?: string,
@@ -71,7 +71,7 @@ export class MonitoringErrorHandler {
   ) {
     // Application Insights
     if (this.configurations.applicationInsights) {
-      AppInsights.trackException(
+      ApplicationInsightsClient.trackException(
         exception,
         handledAt,
         properties,
@@ -82,14 +82,7 @@ export class MonitoringErrorHandler {
 
     // Sentry
     if (this.configurations.sentry) {
-      if (properties) {
-        Sentry.withScope((scope) => {
-          Object.keys(properties).forEach(k => scope.setTag(k, properties[k]));
-          Sentry.captureException(exception);
-        });
-      } else {
-        Sentry.captureException(exception);
-      }
+      SentryClient.trackException(exception, properties);
     }
   }
 }
