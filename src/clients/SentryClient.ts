@@ -19,4 +19,10 @@ export class SentryClient {
       Sentry.captureException(exception);
     }
   }
+
+  public static identifyUser(user: Sentry.User) {
+    Sentry.configureScope((scope) => {
+      scope.setUser({...user });
+    });
+  }
 }
