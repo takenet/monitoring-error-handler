@@ -1,4 +1,5 @@
 import { SentryClient } from './clients/SentryClient';
+import { User as SentryUser } from '@sentry/browser';
 import { ApplicationInsightsClient } from './clients/ApplicationInsightsClient';
 
 export interface InitializeConfigurations {
@@ -18,6 +19,7 @@ export interface ITrackExceptionConfigs {
   properties?: { [x: string]: string };
   measurements?: { [x: string]: number };
   severityLevel?: AI.SeverityLevel;
+  user?: SentryUser;
 }
 
 export class MonitoringErrorHandler {
@@ -68,21 +70,26 @@ export class MonitoringErrorHandler {
     properties,
     measurements,
     severityLevel,
+    user,
   }: ITrackExceptionConfigs) {
     // Application Insights
     if (this.configurations.applicationInsights) {
-      ApplicationInsightsClient.trackException(
+      ApplicationInsightsClient.trackException({
         exception,
         handledAt,
-        properties,
         measurements,
+        properties,
         severityLevel
-      );
+      });
     }
 
     // Sentry
     if (this.configurations.sentry) {
-      SentryClient.trackException(exception, properties);
+      SentryClient.trackException({
+        exception,
+        properties,
+        user,
+      });
     }
   }
 }

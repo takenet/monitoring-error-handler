@@ -1,6 +1,14 @@
 import { InitializeConfigurations } from "../MonitoringErrorHandler";
 import { AppInsights } from 'applicationinsights-js';
 
+interface IAppInsightsTrackException {
+  exception: Error;
+  handledAt?: string;
+  properties?: { [x: string]: string };
+  measurements?: { [x: string]: number };
+  severityLevel?: AI.SeverityLevel;
+}
+
 export class ApplicationInsightsClient {
   public static initialize(configurations: InitializeConfigurations) {
     if (AppInsights.downloadAndSetup && configurations.applicationInsights) {
@@ -17,13 +25,13 @@ export class ApplicationInsightsClient {
     }
   }
 
-  public static trackException(
-    exception: Error,
-    handledAt?: string,
-    properties?: { [x: string]: string },
-    measurements?: { [x: string]: number },
-    severityLevel?: AI.SeverityLevel
-  ) {
+  public static trackException({
+    exception,
+    handledAt,
+    properties,
+    measurements,
+    severityLevel
+  }: IAppInsightsTrackException) {
     AppInsights.trackException(
       exception,
       handledAt,
