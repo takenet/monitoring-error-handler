@@ -12,6 +12,14 @@ export interface InitializeConfigurations {
   };
 }
 
+export interface ITrackExceptionConfigs {
+  exception: Error;
+  handledAt?: string;
+  properties?: { [x: string]: string };
+  measurements?: { [x: string]: number };
+  severityLevel?: AI.SeverityLevel;
+}
+
 export class MonitoringErrorHandler {
   private static Instance: MonitoringErrorHandler;
   public hasInitialized: any;
@@ -54,21 +62,13 @@ export class MonitoringErrorHandler {
     this.hasInitialized = true;
   }
 
-  /**
-   * Track generic exception and send arguments to specifc clients
-   * @param exception
-   * @param handledAt
-   * @param properties
-   * @param measurements
-   * @param severityLevel
-   */
-  public trackException(
-    exception: Error,
-    handledAt?: string,
-    properties?: { [x: string]: string },
-    measurements?: { [x: string]: number },
-    severityLevel?: AI.SeverityLevel
-  ) {
+  public trackException({
+    exception,
+    handledAt,
+    properties,
+    measurements,
+    severityLevel,
+  }: ITrackExceptionConfigs) {
     // Application Insights
     if (this.configurations.applicationInsights) {
       ApplicationInsightsClient.trackException(
