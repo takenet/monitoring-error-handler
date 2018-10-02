@@ -1,7 +1,8 @@
-import { AppInsights } from 'applicationinsights-js';
-import * as Sentry from '@sentry/browser';
+import { SentryClient } from './clients/SentryClient';
+import { User as SentryUser } from '@sentry/browser';
+import { ApplicationInsightsClient } from './clients/ApplicationInsightsClient';
 
-interface InitializeConfigurations {
+export interface InitializeConfigurations {
   applicationInsights?: {
     instrumentationKey: string,
     applicationName?:string,
@@ -10,6 +11,15 @@ interface InitializeConfigurations {
     dsn: string;
     environment: string;
   };
+}
+
+export interface ITrackExceptionConfigs {
+  exception: Error;
+  handledAt?: string;
+  properties?: { [x: string]: string };
+  measurements?: { [x: string]: number };
+  severityLevel?: AI.SeverityLevel;
+  user?: SentryUser;
 }
 
 export class MonitoringErrorHandler {
@@ -25,71 +35,61 @@ export class MonitoringErrorHandler {
     }
   }
 
+  /**
+   * Get class singleton instance
+   */
   public static get instance(): MonitoringErrorHandler {
     MonitoringErrorHandler.Instance =
       MonitoringErrorHandler.Instance || new MonitoringErrorHandler();
     return MonitoringErrorHandler.Instance;
   }
 
+  /**
+   * Initialize clients integrated
+   * @param configurations - initialize params
+   */
   public initialize(configurations: InitializeConfigurations) {
     this.configurations = configurations;
 
     if (!this.hasInitialized) {
       // Application Insights
-      if (AppInsights.downloadAndSetup && configurations.applicationInsights) {
-        AppInsights.downloadAndSetup({
-          instrumentationKey: configurations.applicationInsights.instrumentationKey,
-        });
-
-        if (configurations.applicationInsights.applicationName) {
-          AppInsights.queue.push(() => {
-            AppInsights.context.addTelemetryInitializer((evelope) => {
-              evelope.tags['ai.cloud.role'] = configurations.applicationInsights.applicationName;
-            });
-          });
-        }
-      }
+      ApplicationInsightsClient.initialize(configurations);
 
       // Sentry
       if (configurations.sentry) {
-        Sentry.init({
-          dsn: configurations.sentry.dsn,
-          environment: configurations.sentry.environment,
-        });
+        SentryClient.initialize(configurations);
       }
     }
 
     this.hasInitialized = true;
   }
 
-  public trackException(
-    exception: Error,
-    handledAt?: string,
-    properties?: { [x: string]: string },
-    measurements?: { [x: string]: number },
-    severityLevel?: AI.SeverityLevel
-  ) {
+  public trackException({
+    exception,
+    handledAt,
+    properties,
+    measurements,
+    severityLevel,
+    user,
+  }: ITrackExceptionConfigs) {
     // Application Insights
     if (this.configurations.applicationInsights) {
-      AppInsights.trackException(
+      ApplicationInsightsClient.trackException({
         exception,
         handledAt,
-        properties,
         measurements,
+        properties,
         severityLevel
-      );
+      });
     }
 
     // Sentry
     if (this.configurations.sentry) {
-      if (properties) {
-        Sentry.withScope((scope) => {
-          Object.keys(properties).forEach(k => scope.setTag(k, properties[k]));
-          Sentry.captureException(exception);
-        });
-      } else {
-        Sentry.captureException(exception);
-      }
+      SentryClient.trackException({
+        exception,
+        properties,
+        user,
+      });
     }
   }
 }
