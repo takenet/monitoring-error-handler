@@ -17,7 +17,16 @@ Initialize client with Application Insights `instrumentation key`
 ```typescript
 import { MonitoringErrorHandler } from 'monitoring-error-handler';
 
-MonitoringErrorHandler.instance.initialize('YOUR-INSTRUMENTATION-KEY', 'applicationName');
+MonitoringErrorHandler.instance.initialize({
+  applicationInsights: {
+    instrumentationKey: 'YOUR-INSTRUMENTATION-KEY',
+    applicationName: 'applicationName',
+  },
+  sentry: {
+    dsn: 'YOUR-SENTRY-DSN',
+    environment: 'YOUR-SENTRY-ENV',
+  },
+});
 ```
 
 Start tracking your exceptions
@@ -26,6 +35,6 @@ Start tracking your exceptions
 try {
   doSomething();
 } catch (exception) {
-  MonitoringErrorHandler.instance.trackException(exception);
+  MonitoringErrorHandler.instance.trackException({ exception });
 }
 ```
