@@ -34,7 +34,7 @@ export class SentryClient {
     }
   }
 
-  private static identifyUser(user: Sentry.User) {
+  public static identifyUser(user: Sentry.User) {
     Sentry.configureScope((scope) => {
       scope.setUser({...user });
     });
