@@ -72,6 +72,11 @@ export class MonitoringErrorHandler {
     severityLevel,
     user,
   }: ITrackExceptionConfigs) {
+
+    if (exception.message) {
+      return;
+    }
+
     // Application Insights
     if (this.configurations.applicationInsights) {
       ApplicationInsightsClient.trackException({
