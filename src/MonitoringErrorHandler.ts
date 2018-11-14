@@ -73,7 +73,7 @@ export class MonitoringErrorHandler {
     user,
   }: ITrackExceptionConfigs) {
 
-    if (exception.message) {
+    if (!exception.message) {
       return;
     }
 
