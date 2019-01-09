@@ -10,6 +10,7 @@ export interface InitializeConfigurations {
   sentry?: {
     dsn: string;
     environment: string;
+    release?: string,
   };
 }
 
@@ -72,7 +73,6 @@ export class MonitoringErrorHandler {
     severityLevel,
     user,
   }: ITrackExceptionConfigs) {
-
     if (!exception.message) {
       return;
     }

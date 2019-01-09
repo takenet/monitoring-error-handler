@@ -12,6 +12,7 @@ export class SentryClient {
     Sentry.init({
       dsn: configurations.sentry.dsn,
       environment: configurations.sentry.environment,
+      [configurations.sentry.release ? 'release' : '']: configurations.sentry.release
     });
   }
 
