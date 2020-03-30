@@ -35,9 +35,9 @@
     "applicationinsights-js": "^1.0.20"
   },
   "devDependencies": {
+    "@types/applicationinsights-js": "^1.0.7",
     "@types/jest": "^22.0.1",
     "@types/node": "^8.0.0",
-    "@types/applicationinsights-js": "^1.0.7",
     "commitizen": "^2.10.1",
     "coveralls": "^3.0.2",
     "cz-conventional-changelog": "^2.1.0",
@@ -50,7 +50,7 @@
     "ts-node": "^3.2.0",
     "tslint": "^5.0.0",
     "tslint-config-prettier": "^1.1.0",
-    "typescript": "^3.0.3"
+    "typescript": "^3.8.3"
   },
   "engines": {
     "node": ">=6.0.0"

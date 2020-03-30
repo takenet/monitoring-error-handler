@@ -78,7 +78,7 @@ export class MonitoringErrorHandler {
     }
 
     // Application Insights
-    if (this.configurations.applicationInsights) {
+    if (this.configurations?.applicationInsights) {
       ApplicationInsightsClient.trackException({
         exception,
         handledAt,
@@ -89,7 +89,7 @@ export class MonitoringErrorHandler {
     }
 
     // Sentry
-    if (this.configurations.sentry) {
+    if (this.configurations?.sentry) {
       SentryClient.trackException({
         exception,
         properties,
